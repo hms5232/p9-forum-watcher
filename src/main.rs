@@ -48,15 +48,15 @@ fn main() {
                             .to_string()
                     })
                     .collect();
+                // 如果讀取到的值不足 5 個，代表文章有問題或不是文章
+                if values.len() < 5 {
+                    continue;
+                }
                 let mut row = HashMap::new();
                 for (i, value) in values.iter().enumerate() {
                     row.insert(HEADER_ROW[i], value.to_string());
                 }
 
-                // 如果讀取到的值不足 5 個，代表文章有問題或不是文章
-                if values.len() < 5 { 
-                    continue;
-                }
                 // 如果 check_point 比文章時間晚，代表是舊文章
                 if NaiveDateTime::parse_from_str(&row["time"], "%Y/%m/%d %H:%M:%S").unwrap()
                     < check_point.naive_local()
