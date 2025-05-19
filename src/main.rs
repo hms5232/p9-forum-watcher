@@ -17,20 +17,20 @@ const HEADER_ROW: [&str; 8] = [
 ];
 
 fn main() {
-    let mut check_point = Local::now(); // 確認新文章的時間點，程式剛啟動就是當下。注意：未考量執行機器非台北時區的情況
+    let target_url = "https://www.p9.com.tw/Forum/ForumSection.aspx?Id=3&Sort=Post_Time";
+    let url = Url::parse(target_url).unwrap();
+    let mut check_point = url.clone(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章
+
     loop {
         let mut posts: Vec<HashMap<&str, String>> = Vec::new();
+        let mut next_check_point = url.clone(); // 下次檢查點，也就是這次檢查的第一篇文章
 
-        let url = Url::parse(
-            "https://www.p9.com.tw/Forum/ForumSection.aspx?id=3&BoardId=12&Sort=Post_Time",
-        )
-        .unwrap();
         let client = Client::new();
         let res = client.get(url.as_str())
             .header(header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
             .send()
             .unwrap();
-        println!("[{}] 請求完成，檢查點 {}", Local::now().format("%Y/%m/%d %H:%M:%S"), check_point.format("%Y/%m/%d %H:%M:%S"));
+        println!("[{}] 請求完成", Local::now().format("%Y/%m/%d %H:%M:%S"));
         let document = Html::parse_document(&res.text().unwrap());
         let tbody_selector = Selector::parse(".contentMain > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(6) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1)").unwrap();
         let tr_selector = Selector::parse("tr").unwrap();
@@ -57,26 +57,36 @@ fn main() {
                     row.insert(HEADER_ROW[i], value.to_string());
                 }
 
-                // 如果 check_point 比文章時間晚，代表是舊文章
-                if NaiveDateTime::parse_from_str(&row["time"], "%Y/%m/%d %H:%M:%S").unwrap()
-                    < check_point.naive_local()
-                {
+                // 跳過置頂
+                if row.get("original_title").unwrap().contains("【頂】") {
                     continue;
                 }
 
                 // 找出連結
+                let mut post_link = url.clone(); // 借用目標頁的 Url 作為初始值
                 for title_td in tr
                     .select(&Selector::parse("td.pricelist_02[align=\"left\"] > div > a").unwrap())
                     .into_iter()
                 {
-                    // 實際上只會有一個，所以直接 insert
-                    row.insert(
-                        "link",
-                        url.join(title_td.attr("href").unwrap())
-                            .unwrap()
-                            .to_string(),
-                    );
+                    post_link = url.join(title_td.attr("href").unwrap()).unwrap();
                 }
+
+                // 如果是初次啟動，後面就不用再檢查了
+                if check_point.eq(&url) {
+                    check_point = post_link.clone();
+                    break;
+                }
+                // 第一篇文章就是下次的起始檢查點
+                if next_check_point.eq(&url) {
+                    next_check_point = post_link.clone();
+                }
+                // 如果重新看到 check_point，代表已經完成所有新文章的檢查
+                if post_link.eq(&check_point) {
+                    check_point = next_check_point;
+                    break;
+                }
+
+                row.insert("link", post_link.to_string());
 
                 posts.push(row);
             }
@@ -86,7 +96,6 @@ fn main() {
             println!("新文章〈{}〉{}", post["original_title"], post["link"]);
         }
 
-        check_point = Local::now();
         sleep(std::time::Duration::from_secs(60 * 10));
     }
 }
