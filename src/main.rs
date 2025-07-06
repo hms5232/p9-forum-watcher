@@ -5,6 +5,8 @@ use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::thread::sleep;
 
+mod forum;
+
 const HEADER_ROW: [&str; 8] = [
     "time",
     "original_title",
@@ -17,8 +19,9 @@ const HEADER_ROW: [&str; 8] = [
 ];
 
 fn main() {
-    let target_url = "https://www.p9.com.tw/Forum/ForumSection.aspx?Id=3&Sort=Post_Time";
-    let url = Url::parse(target_url).unwrap();
+    let target_url = forum::get_url(forum::SectionList::Brandy, forum::Sort::PostTime);
+    println!("目標網址：{}", target_url);
+    let url = Url::parse(target_url.as_str()).unwrap();
     let mut check_point = url.clone(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章
 
     loop {
