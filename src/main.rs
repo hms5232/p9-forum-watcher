@@ -23,7 +23,7 @@ const HEADER_ROW: [&str; 8] = [
 /// # Example
 ///
 /// ```
-/// assert_eq!(println_with_time!("Hello {}!", "world"), "[2025/01/01 00:00:00] Hello world!");
+/// println_with_time!("Hello {}!", "world"); // console output: "[2025/01/01 00:00:00] Hello world!"
 /// ```
 ///
 macro_rules! println_with_time {
