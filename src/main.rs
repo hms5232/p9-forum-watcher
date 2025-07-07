@@ -18,6 +18,20 @@ const HEADER_ROW: [&str; 8] = [
     "link",
 ];
 
+/// 訊息前方加上時間的 println!
+///
+/// # Example
+///
+/// ```
+/// assert_eq!(println_with_time!("Hello {}!", "world"), "[2025/01/01 00:00:00] Hello world!");
+/// ```
+///
+macro_rules! println_with_time {
+    ($($arg:tt)*) => {
+        println!("[{}] {}", Local::now().format("%Y/%m/%d %H:%M:%S"), format_args!($($arg)*));
+    };
+}
+
 fn main() {
     let target_url = forum::get_url(forum::SectionList::Brandy, forum::Sort::PostTime);
     println!("目標網址：{}", target_url);
@@ -33,7 +47,7 @@ fn main() {
             .header(header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
             .send()
             .unwrap();
-        println!("[{}] 請求完成", Local::now().format("%Y/%m/%d %H:%M:%S"));
+        println_with_time!("請求完成");
         let document = Html::parse_document(&res.text().unwrap());
         let tbody_selector = Selector::parse(".contentMain > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(6) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1)").unwrap();
         let tr_selector = Selector::parse("tr").unwrap();
