@@ -1,9 +1,11 @@
 use chrono::prelude::*;
+use promkit::preset::listbox::Listbox;
 use reqwest::blocking::Client;
 use reqwest::{Url, header};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::thread::sleep;
+use strum::IntoEnumIterator;
 
 mod forum;
 
@@ -33,7 +35,21 @@ macro_rules! println_with_time {
 }
 
 fn main() {
-    let target_url = forum::get_url(forum::SectionList::Brandy, forum::Sort::PostTime);
+    // 詢問選單，讓使用者選擇看板和排序依據
+    let section = forum::SectionList::get_by_zh_name(
+        Listbox::new(forum::SectionList::iter())
+            .title("請選擇看板")
+            .prompt()
+            .unwrap()
+            .run()
+            .unwrap(),
+    );
+    let Some(section_variant) = section else {
+        eprint!("看板列舉映射發生問題，請回報給開發人員");
+        return;
+    };
+
+    let target_url = forum::get_url(section_variant, forum::Sort::PostTime);
     println!("目標網址：{}", target_url);
     let url = Url::parse(target_url.as_str()).unwrap();
     let mut check_point = url.clone(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章

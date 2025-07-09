@@ -1,5 +1,7 @@
 //! 討論區
 
+use strum::EnumIter;
+
 /// 網站討論區 URL
 const BASE_URL: &str = "https://www.p9.com.tw/Forum/ForumSection.aspx";
 
@@ -14,6 +16,7 @@ pub fn get_url(section: SectionList, sort: Sort) -> String {
 }
 
 /// 討論區
+#[derive(EnumIter)]
 pub enum SectionList {
     Whisky, // 威士忌
     Brandy, // 白蘭地
@@ -25,6 +28,15 @@ impl SectionList {
         match self {
             SectionList::Whisky => "威士忌",
             SectionList::Brandy => "白蘭地",
+        }
+    }
+
+    /// 用中文名稱回推看板變體
+    pub fn get_by_zh_name(name: String) -> Option<SectionList> {
+        match name.as_str() {
+            "威士忌" => Some(SectionList::Whisky),
+            "白蘭地" => Some(SectionList::Brandy),
+            _ => None,
         }
     }
 
@@ -42,6 +54,12 @@ impl SectionList {
             SectionList::Whisky => 5,
             SectionList::Brandy => 12,
         }
+    }
+}
+
+impl std::fmt::Display for SectionList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.zh_name())
     }
 }
 
