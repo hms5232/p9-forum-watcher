@@ -48,8 +48,20 @@ fn main() {
         eprint!("看板列舉映射發生問題，請回報給開發人員");
         return;
     };
+    let sort = forum::Sort::get_by_zh_name(
+        Listbox::new(forum::Sort::iter())
+            .title("請選擇排序依據")
+            .prompt()
+            .unwrap()
+            .run()
+            .unwrap(),
+    );
+    let Some(sort_variant) = sort else {
+        eprint!("排序列舉映射發生問題，請回報給開發人員");
+        return;
+    };
 
-    let target_url = forum::get_url(section_variant, forum::Sort::PostTime);
+    let target_url = forum::get_url(section_variant, sort_variant);
     println!("目標網址：{}", target_url);
     let url = Url::parse(target_url.as_str()).unwrap();
     let mut check_point = url.clone(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章

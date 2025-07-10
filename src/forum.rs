@@ -64,6 +64,7 @@ impl std::fmt::Display for SectionList {
 }
 
 /// 文章列表排序方式
+#[derive(EnumIter)]
 pub enum Sort {
     LastReplyTime, // 最後回應時間
     PostTime,      // 發文時間
@@ -76,5 +77,28 @@ impl Sort {
             Sort::LastReplyTime => "Last_Reply_Time",
             Sort::PostTime => "Post_Time",
         }
+    }
+
+    /// 取得中文名稱
+    fn get_method_name(&self) -> &'static str {
+        match self {
+            Sort::LastReplyTime => "最後回應時間",
+            Sort::PostTime => "發文時間",
+        }
+    }
+
+    /// 用中文名稱回推排序變體
+    pub(crate) fn get_by_zh_name(method: String) -> Option<Sort> {
+        match method.as_str() {
+            "最後回應時間" => Some(Sort::LastReplyTime),
+            "發文時間" => Some(Sort::PostTime),
+            _ => None
+        }
+    }
+}
+
+impl std::fmt::Display for Sort {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.get_method_name())
     }
 }
