@@ -6,6 +6,9 @@ use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::thread::sleep;
 use strum::IntoEnumIterator;
+use term_table::row::Row;
+use term_table::table_cell::TableCell;
+use term_table::{Table, TableStyle, row};
 
 mod forum;
 
@@ -137,9 +140,49 @@ fn main() {
             }
         }
 
+        // 印出新文章
+        let count = posts.len();
+        let mut table_rows: Vec<Row> = vec![
+            // 表格標題：時間
+            row![
+                TableCell::builder(Local::now().format("%Y/%m/%d %H:%M:%S"))
+                    .col_span(2)
+                    .alignment(term_table::table_cell::Alignment::Center)
+                    .build(),
+            ],
+            // 表格標頭
+            row![
+                TableCell::builder("原始標題")
+                    .alignment(term_table::table_cell::Alignment::Center)
+                    .build(),
+                TableCell::builder("連結")
+                    .alignment(term_table::table_cell::Alignment::Center)
+                    .build(),
+            ],
+        ];
         for post in posts {
-            println!("新文章〈{}〉{}", post["original_title"], post["link"]);
+            table_rows.push(row![
+                TableCell::builder(post["original_title"].as_str()).build(),
+                TableCell::builder(post["link"].as_str()).build(),
+            ])
         }
+        table_rows.push(
+            // 表格結尾統計
+            row![
+                TableCell::builder(
+                    Local::now().format(format!("本次計有 {} 篇新文章", count).as_str())
+                )
+                .col_span(2)
+                .alignment(term_table::table_cell::Alignment::Center)
+                .build(),
+            ],
+        );
+        let table = Table::builder()
+            .max_column_width(80)
+            .style(TableStyle::extended())
+            .rows(table_rows)
+            .build();
+        println!("{}", table.render());
 
         sleep(std::time::Duration::from_secs(60 * 10));
     }

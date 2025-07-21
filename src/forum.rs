@@ -92,7 +92,7 @@ impl Sort {
         match method.as_str() {
             "最後回應時間" => Some(Sort::LastReplyTime),
             "發文時間" => Some(Sort::PostTime),
-            _ => None
+            _ => None,
         }
     }
 }
