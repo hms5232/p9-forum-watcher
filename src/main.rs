@@ -23,6 +23,8 @@ const HEADER_ROW: [&str; 8] = [
     "link",
 ];
 
+const POST_BASE_URL: &str = "https://www.p9.com.tw/Forum/";
+
 /// 訊息前方加上時間的 println!
 ///
 /// # Example
@@ -161,9 +163,14 @@ fn main() {
             ],
         ];
         for post in posts {
+            // convert link
+            let link = post.get("link").unwrap().to_owned(); // original link
+            let display_link = prune_link(link.clone()).unwrap_or_else(|| link); // simplified or original url
+
+            // insert row
             table_rows.push(row![
                 TableCell::builder(post["original_title"].as_str()).build(),
-                TableCell::builder(post["link"].as_str()).build(),
+                TableCell::builder(display_link.as_str()).build(),
             ])
         }
         table_rows.push(
@@ -186,4 +193,17 @@ fn main() {
 
         sleep(std::time::Duration::from_secs(60 * 10));
     }
+}
+
+/// 修剪貼文網址
+///
+/// 網址中的中文其實是沒必要的，修剪後就能搭配表格形式輸出了
+fn prune_link(url: String) -> Option<String> {
+    let re = regex::Regex::new(r"(Topics\d+)").unwrap();
+    if let Some(capture) = re.captures(&url) {
+        if let Some(post_id) = capture.get(1) {
+            return Some(format!("{}{}.aspx", POST_BASE_URL, post_id.as_str()));
+        }
+    }
+    None
 }

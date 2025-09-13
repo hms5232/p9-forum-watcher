@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 chrono = "0.4.41"
 promkit = { version = "0.9.1", features = ["listbox"] }
+regex = "1.11.2"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 scraper = "0.23.1"
 strum = { version = "0.27.1", features = ["derive"] }
