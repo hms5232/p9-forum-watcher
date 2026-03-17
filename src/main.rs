@@ -5,6 +5,7 @@ use reqwest::{Url, header};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::thread::sleep;
+use notify_rust::{Notification, Timeout};
 use strum::IntoEnumIterator;
 use term_table::row::Row;
 use term_table::table_cell::TableCell;
@@ -190,6 +191,16 @@ fn main() {
             .rows(table_rows)
             .build();
         println!("{}", table.render());
+        // 有新的動態
+        if count > 0 {
+            // 系統通知
+            Notification::new()
+                .summary("P9 論壇監視器")
+                .body(&format!("發現 {} 篇新文章或有更新", count))
+                .timeout(Timeout::Milliseconds(10000))
+                .show()
+                .unwrap();
+        }
 
         sleep(std::time::Duration::from_secs(60 * 10));
     }
