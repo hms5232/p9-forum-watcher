@@ -1,11 +1,11 @@
 use chrono::prelude::*;
+use notify_rust::{Notification, Timeout};
 use promkit::preset::listbox::Listbox;
 use reqwest::blocking::Client;
 use reqwest::{Url, header};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::thread::sleep;
-use notify_rust::{Notification, Timeout};
 use strum::IntoEnumIterator;
 use term_table::row::Row;
 use term_table::table_cell::TableCell;
@@ -200,9 +200,11 @@ fn main() {
                 .timeout(Timeout::Milliseconds(10000))
                 .show()
                 .unwrap();
+            #[cfg(target_os = "windows")]
+            windows_flash_taskbar();
         }
 
-        sleep(std::time::Duration::from_secs(60 * 10));
+        sleep(std::time::Duration::from_secs(60));
     }
 }
 
@@ -217,4 +219,29 @@ fn prune_link(url: String) -> Option<String> {
         }
     }
     None
+}
+
+/// 閃爍 Windows 視窗
+fn windows_flash_taskbar() -> bool {
+    use windows::Win32::System::Console::GetConsoleWindow;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        FLASHW_TIMERNOFG, FLASHW_TRAY, FLASHWINFO, FlashWindowEx,
+    };
+
+    unsafe {
+        let hwnd = GetConsoleWindow();
+        if !hwnd.is_invalid() {
+            let mut info = FLASHWINFO::default();
+            info.cbSize = std::mem::size_of::<FLASHWINFO>() as u32;
+            info.hwnd = hwnd;
+            // FLASHW_TRAY：閃爍工作列圖示
+            // FLASHW_TIMERNOFG：持續閃爍直到視窗回到最上層（取得焦點）
+            info.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+            info.uCount = 5; // 閃爍次數
+            info.dwTimeout = 0; // 閃爍頻率（0 為預設）
+
+            return FlashWindowEx(&info).as_bool();
+        }
+        false
+    }
 }
