@@ -1,11 +1,11 @@
 use chrono::prelude::*;
+use notify_rust::{Notification, Timeout};
 use promkit::preset::listbox::Listbox;
 use reqwest::blocking::Client;
 use reqwest::{Url, header};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::thread::sleep;
-use notify_rust::{Notification, Timeout};
 use strum::IntoEnumIterator;
 use term_table::row::Row;
 use term_table::table_cell::TableCell;

@@ -1,0 +1,13 @@
+#:schema https://www.schemastore.org/prek.json
+# 最新的綱要在 https://raw.githubusercontent.com/j178/prek/refs/heads/master/prek.schema.json
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "cargo-fmt-check"
+name = "cargo fmt check"
+language = "system"
+entry = "cargo fmt --check"
+types = ["rust"]
+pass_filenames = false
