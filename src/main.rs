@@ -77,8 +77,12 @@ fn main() {
         let mut next_check_point = url.clone(); // 下次檢查點，也就是這次檢查的第一篇文章
 
         let client = Client::new();
-        let res = client.get(url.as_str())
-            .header(header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+        let res = client
+            .get(url.as_str())
+            .header(
+                header::USER_AGENT,
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0",
+            )
             .send()
             .unwrap();
         println_with_time!("請求完成");
