@@ -8,7 +8,7 @@ pub mod list;
 const BASE_URL: &str = "https://www.p9.com.tw/Forum/ForumSection.aspx";
 
 /// 取得指定看板以及指定排序方式的討論區 URL
-pub fn get_url(section: SectionList, sort: Sort) -> String {
+pub fn get_url(section: &SectionList, sort: &Sort) -> String {
     format!(
         "{}?Id={}&Sort={}",
         BASE_URL,

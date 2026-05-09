@@ -1,3 +1,4 @@
+use crate::forum::Sort;
 use crate::forum::list::Post;
 use chrono::prelude::*;
 use notify_rust::{Notification, Timeout};
@@ -55,8 +56,8 @@ fn main() {
         eprint!("看板列舉映射發生問題，請回報給開發人員");
         return;
     };
-    let sort = forum::Sort::get_by_zh_name(
-        Listbox::new(forum::Sort::iter())
+    let sort = Sort::get_by_zh_name(
+        Listbox::new(Sort::iter())
             .title("請選擇排序依據")
             .prompt()
             .unwrap()
@@ -68,14 +69,13 @@ fn main() {
         return;
     };
 
-    let target_url = forum::get_url(section_variant, sort_variant);
+    let target_url = forum::get_url(&section_variant, &sort_variant);
     println!("目標網址：{}", target_url);
     let url = Url::parse(target_url.as_str()).unwrap();
-    let mut check_point = url.clone(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章
+    let mut check_point = Post::fake_post(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章
 
     loop {
         let mut posts: Vec<Post> = Vec::new();
-        let mut next_check_point = url.clone(); // 下次檢查點，也就是這次檢查的第一篇文章
 
         let client = Client::new();
         let res = client
@@ -127,23 +127,37 @@ fn main() {
                     post_link = url.join(title_td.attr("href").unwrap()).unwrap();
                 }
 
+                let post = Post::new(&row, post_link);
+
                 // 如果是初次啟動，後面就不用再檢查了
-                if check_point.eq(&url) {
-                    check_point = post_link.clone();
-                    break;
-                }
-                // 第一篇文章就是下次的起始檢查點
-                if next_check_point.eq(&url) {
-                    next_check_point = post_link.clone();
-                }
-                // 如果重新看到 check_point，代表已經完成所有新文章的檢查
-                if post_link.eq(&check_point) {
-                    check_point = next_check_point;
+                if check_point.is_fake() {
+                    check_point = post;
                     break;
                 }
 
-                posts.push(Post::new(&row, post_link));
+                match &sort_variant {
+                    Sort::LastReplyTime => {
+                        // 如果看到目前文章最後回覆時間早於檢查點的最後回覆時間，表示已經檢查完畢
+                        if post.latest_reply_at.le(&check_point.latest_reply_at) {
+                            break;
+                        }
+                    }
+                    Sort::PostTime => {
+                        // 如果重新看到上一次的最後一篇文章（檢查點），代表已經完成所有新文章的檢查
+                        if post.eq(&check_point) {
+                            break;
+                        }
+                    }
+                }
+
+                posts.push(post);
             }
+        }
+        // 初次啟動或沒有新的文章，posts 就會沒東西
+        // 此情況在前面就已經賦值給檢查點變數了，所以不需要再覆蓋
+        if !posts.is_empty() {
+            // 向量中第一個 Post 就是第一篇文章
+            check_point = posts.first().unwrap().clone();
         }
 
         // 印出新文章
