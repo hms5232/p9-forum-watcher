@@ -1,3 +1,4 @@
+use crate::forum::list::Post;
 use chrono::prelude::*;
 use notify_rust::{Notification, Timeout};
 use promkit::preset::listbox::Listbox;
@@ -73,7 +74,7 @@ fn main() {
     let mut check_point = url.clone(); // 本次檢查點，可能是新建立或是上次檢查的第一篇文章
 
     loop {
-        let mut posts: Vec<HashMap<&str, String>> = Vec::new();
+        let mut posts: Vec<Post> = Vec::new();
         let mut next_check_point = url.clone(); // 下次檢查點，也就是這次檢查的第一篇文章
 
         let client = Client::new();
@@ -141,9 +142,7 @@ fn main() {
                     break;
                 }
 
-                row.insert("link", post_link.to_string());
-
-                posts.push(row);
+                posts.push(Post::new(&row, post_link));
             }
         }
 
@@ -168,14 +167,10 @@ fn main() {
             ],
         ];
         for post in posts {
-            // convert link
-            let link = post.get("link").unwrap().to_owned(); // original link
-            let display_link = prune_link(link.clone()).unwrap_or_else(|| link); // simplified or original url
-
             // insert row
             table_rows.push(row![
-                TableCell::builder(post["original_title"].as_str()).build(),
-                TableCell::builder(display_link.as_str()).build(),
+                TableCell::builder(post.original_title.as_str()).build(),
+                TableCell::builder(post.get_pruned_url()).build(),
             ])
         }
         table_rows.push(

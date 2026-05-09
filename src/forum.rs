@@ -2,6 +2,8 @@
 
 use strum::EnumIter;
 
+pub mod list;
+
 /// 網站討論區 URL
 const BASE_URL: &str = "https://www.p9.com.tw/Forum/ForumSection.aspx";
 
