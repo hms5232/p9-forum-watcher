@@ -201,7 +201,9 @@ fn main() {
                 .unwrap();
         }
 
-        sleep(std::time::Duration::from_secs(60 * 10));
+        // 檢查間隔
+        let interval = 60 * if cfg!(debug_assertions) { 1 } else { 10 };
+        sleep(std::time::Duration::from_secs(interval));
     }
 }
 
