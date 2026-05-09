@@ -203,9 +203,17 @@ fn main() {
             .style(TableStyle::extended())
             .rows(table_rows)
             .build();
-        println!("{}", table.render());
+        #[cfg(debug_assertions)]
+        {
+            // debug 即便 0 也印出表格
+            // 反之，不是 0 為了避免重複印出則不印
+            if count == 0 {
+                println!("{}", table.render());
+            }
+        }
         // 有新的動態
         if count > 0 {
+            println!("{}", table.render());
             // 系統通知
             Notification::new()
                 .summary("P9 論壇監視器")
