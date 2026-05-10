@@ -76,6 +76,7 @@ fn main() {
 
     loop {
         let mut posts: Vec<Post> = Vec::new();
+        let mut seen_check_point = false; // 是否有遇見檢查點，預防文章被刪除或是擠到第一頁之後。僅在以新文章排序時有用
 
         let client = Client::new();
         let res = client
@@ -132,6 +133,7 @@ fn main() {
                 // 如果是初次啟動，後面就不用再檢查了
                 if check_point.is_fake() {
                     check_point = post;
+                    seen_check_point = true;
                     break;
                 }
 
@@ -145,6 +147,7 @@ fn main() {
                     Sort::PostTime => {
                         // 如果重新看到上一次的最後一篇文章（檢查點），代表已經完成所有新文章的檢查
                         if post.eq(&check_point) {
+                            seen_check_point = true;
                             break;
                         }
                     }
@@ -158,6 +161,14 @@ fn main() {
         if !posts.is_empty() {
             // 向量中第一個 Post 就是第一篇文章
             check_point = posts.first().unwrap().clone();
+        }
+
+        // 如果沒有看見檢查點，則把目前最新的文章（下一輪檢查點）當成本輪新文章
+        if let Sort::PostTime = sort_variant {
+            if !seen_check_point {
+                posts = vec![check_point.clone()];
+                println_with_time!("本輪檢查未發現前一輪作為檢查點的文章，將印出最新的一篇文章");
+            }
         }
 
         // 印出新文章
