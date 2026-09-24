@@ -1,7 +1,7 @@
 use crate::forum::Sort;
 use crate::forum::list::Post;
 use chrono::prelude::*;
-use notify_rust::{Notification, Timeout};
+use notify_rust::{Notification, Urgency};
 use promkit::preset::listbox::Listbox;
 use reqwest::blocking::Client;
 use reqwest::{Url, header};
@@ -229,7 +229,9 @@ fn main() {
             Notification::new()
                 .summary("P9 論壇監視器")
                 .body(&format!("發現 {} 篇新文章或有更新", count))
-                .timeout(Timeout::Milliseconds(10000))
+                // 緊急度 + action 才能讓 toast 不會一下就收起來
+                .urgency(Urgency::Critical)
+                .action("ciallo", "Ciallo～(∠・ω＜ )⌒☆") // 加個按鈕
                 .show()
                 .unwrap();
         }
